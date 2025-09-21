@@ -1,0 +1,88 @@
+# 模板系统默认配置文件
+# 包含全局默认设置和通用模板配置
+
+# 全局设置
+global:
+  # 默认超时时间（秒）
+  default_timeout: 30.0
+  
+  # 默认重试次数
+  default_retry_count: 2
+  
+  # 是否启用异步执行
+  async_enabled: false
+  
+  # 缓存设置
+  cache:
+    enabled: true
+    default_ttl: 1800  # 30分钟
+    max_memory_usage: 256  # 256MB
+  
+  # 日志级别
+  log_level: INFO
+  
+  # 性能监控
+  metrics:
+    enabled: true
+    collection_interval: 60  # 秒
+
+# 模板默认配置
+templates:
+  # 默认模板配置会应用到所有模板
+  default:
+    version: "1.0.0"
+    author: "LangChain Learning Project"
+    timeout: ${global.default_timeout}
+    retry_count: ${global.default_retry_count}
+    async_enabled: ${global.async_enabled}
+    cache_enabled: ${global.cache.enabled}
+    cache_ttl: ${global.cache.default_ttl}
+    
+    # 默认标签
+    tags:
+      - template
+      - langchain
+    
+    # 通用参数（所有模板都会继承）
+    parameters:
+      verbose:
+        type: bool
+        required: false
+        default: false
+        description: "是否启用详细输出"
+      
+      debug:
+        type: bool
+        required: false
+        default: false
+        description: "是否启用调试模式"
+
+# 环境特定配置
+environments:
+  development:
+    log_level: DEBUG
+    cache:
+      enabled: false
+    metrics:
+      enabled: true
+      collection_interval: 10
+  
+  production:
+    log_level: WARNING
+    cache:
+      enabled: true
+      default_ttl: 3600
+    metrics:
+      enabled: true
+      collection_interval: 300
+
+# 配置验证规则
+validation:
+  # 参数验证级别
+  parameter_validation_level: strict
+  
+  # 是否验证依赖项
+  validate_dependencies: true
+  
+  # 是否验证模板结构
+  validate_template_structure: true

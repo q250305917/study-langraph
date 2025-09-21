@@ -1,0 +1,132 @@
+# 示例模板配置文件
+# 展示模板系统的配置结构和功能
+
+# 模板基本信息
+name: ExampleTemplate
+version: 1.0.0
+description: "一个展示模板系统功能的示例模板"
+template_type: llm
+author: "LangChain Learning Project"
+
+# 参数定义
+parameters:
+  # 必需的字符串参数
+  input_text:
+    type: str
+    required: true
+    description: "要处理的输入文本"
+    constraints:
+      min_length: 1
+      max_length: 1000
+    examples:
+      - "Hello, World!"
+      - "请处理这段文本"
+  
+  # 可选的整数参数
+  max_tokens:
+    type: int
+    required: false
+    default: 100
+    description: "最大生成token数量"
+    constraints:
+      min_value: 1
+      max_value: 4000
+    examples:
+      - 100
+      - 500
+      - 1000
+  
+  # 浮点数参数
+  temperature:
+    type: float
+    required: false
+    default: 0.7
+    description: "生成温度，控制输出的随机性"
+    constraints:
+      min_value: 0.0
+      max_value: 2.0
+    examples:
+      - 0.1
+      - 0.7
+      - 1.2
+  
+  # 布尔参数
+  stream_output:
+    type: bool
+    required: false
+    default: false
+    description: "是否流式输出结果"
+    examples:
+      - true
+      - false
+  
+  # 列表参数
+  stop_sequences:
+    type: list
+    required: false
+    default: []
+    description: "停止序列列表"
+    constraints:
+      max_length: 10
+    examples:
+      - ["\\n", "END"]
+      - [".", "!"]
+  
+  # 字典参数
+  model_config:
+    type: dict
+    required: false
+    default: {}
+    description: "模型配置参数"
+    examples:
+      - {"model": "gpt-3.5-turbo", "api_key": "${OPENAI_API_KEY}"}
+
+# 依赖管理
+dependencies:
+  - langchain>=0.1.0
+  - openai>=1.0.0
+  - pydantic>=2.0.0
+
+template_dependencies:
+  - base_llm_template
+
+# 使用示例
+examples:
+  - name: "基本文本处理"
+    setup_parameters:
+      input_text: "Hello, World!"
+      max_tokens: 50
+      temperature: 0.7
+    execute_parameters:
+      message: "Please translate this to Chinese"
+    expected_output: "你好，世界！"
+    
+  - name: "代码生成"
+    setup_parameters:
+      input_text: "Write a Python function to calculate factorial"
+      max_tokens: 200
+      temperature: 0.1
+      stop_sequences: ["\\n\\n"]
+    execute_parameters:
+      language: "python"
+    expected_output: "def factorial(n):\\n    if n <= 1:\\n        return 1\\n    return n * factorial(n-1)"
+
+# 执行配置
+timeout: 30.0
+retry_count: 3
+async_enabled: true
+
+# 标签和文档
+tags:
+  - example
+  - llm
+  - text-processing
+  - tutorial
+
+documentation_url: "https://docs.example.com/templates/example"
+source_url: "https://github.com/example/templates/example"
+
+# 性能配置
+cache_enabled: true
+cache_ttl: 3600  # 1小时
+max_memory_usage: 512  # 512MB
