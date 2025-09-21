@@ -4,7 +4,7 @@ status: backlog
 created: 2025-09-21T02:43:01Z
 progress: 0%
 prd: .claude/prds/langchain-learning-roadmap.md
-github: [Will be updated when synced to GitHub]
+github: https://github.com/q250305917/study-langraph/issues/1
 ---
 
 # Epic: LangChain 技术栈学习路线
@@ -201,19 +201,18 @@ study_langraph/
 
 ## Tasks Created
 
-- [ ] 001.md - 项目初始化 (parallel: true)
-- [ ] 002.md - 核心框架开发 (parallel: false, depends_on: [001])
-- [ ] 003.md - 示例模板系统 (parallel: true, depends_on: [002])
-- [ ] 004.md - 交互式学习环境 (parallel: true, depends_on: [002])
-- [ ] 005.md - RAG项目实现 (parallel: true, depends_on: [002])
-- [ ] 006.md - Multi-Agent实现 (parallel: true, depends_on: [002])
-- [ ] 007.md - 客服系统开发 (parallel: false, depends_on: [005, 006])
-- [ ] 008.md - 文档自动生成 (parallel: true)
-- [ ] 009.md - Docker部署方案 (parallel: true, depends_on: [005, 006, 007])
-- [ ] 010.md - 性能优化包 (parallel: true, depends_on: [005, 006, 007])
+- [ ] #2 - 项目初始化：搭建项目结构，配置Poetry和基础依赖 (parallel: true)
+- [ ] #3 - 核心框架开发：实现BaseChain、ConfigLoader等基础组件 (parallel: false, depends_on: [2])
+- [ ] #4 - 示例模板系统：创建参数化的示例代码模板 (parallel: true, depends_on: [3])
+- [ ] #5 - 交互式学习环境：配置Jupyter，创建练习Notebook (parallel: true, depends_on: [3])
+- [ ] #6 - RAG项目实现：基于框架构建知识库系统 (parallel: true, depends_on: [3])
+- [ ] #7 - Multi-Agent实现：使用LangGraph构建协作平台 (parallel: true, depends_on: [3])
+- [ ] #8 - 客服系统开发：整合前两个项目的功能 (parallel: false, depends_on: [6, 7])
+- [ ] #9 - 文档自动生成：批量生成学习文档和API文档 (parallel: true)
+- [ ] #10 - Docker部署方案：容器化和部署脚本 (parallel: true, depends_on: [6, 7, 8])
+- [ ] #11 - 性能优化包：缓存、并发、监控工具集 (parallel: true, depends_on: [6, 7, 8])
 
-**任务统计**：
-- 总任务数：10
-- 可并行任务：8
-- 顺序任务：2
-- 预估总工时：120小时
+总任务数：10
+可并行任务：8
+顺序任务：2
+预估总工时：120小时
