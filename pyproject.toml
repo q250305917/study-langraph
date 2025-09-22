@@ -1,0 +1,251 @@
+[build-system]
+# 构建系统配置，使用Poetry作为构建后端
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+# 项目基本信息配置
+name = "langchain-learning"
+version = "0.1.0"
+description = "LangChain学习项目：深入学习LangChain框架和相关技术栈"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "langchain_learning", from = "src"}]
+
+# 项目元数据
+license = "MIT"
+homepage = "https://github.com/your-username/langchain-learning"
+repository = "https://github.com/your-username/langchain-learning"
+documentation = "https://your-username.github.io/langchain-learning"
+keywords = ["langchain", "llm", "ai", "learning", "python"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[tool.poetry.dependencies]
+# 核心运行时依赖，生产环境必需的包
+python = "^3.9"
+# LangChain 核心组件
+langchain = "^0.2.16"           # LangChain 主框架
+langchain-community = "^0.2.16" # 社区组件和集成
+langchain-core = "^0.2.38"      # 核心接口和抽象
+langchain-openai = "^0.1.23"    # OpenAI 集成
+langgraph = "^0.2.16"           # 图形化工作流框架
+langserve = "^0.2.7"            # LangChain 服务部署框架
+
+# 环境和配置管理
+python-dotenv = "^1.0.1"        # 环境变量加载
+pydantic = "^2.8.2"             # 数据验证和序列化
+pydantic-settings = "^2.4.0"    # 配置管理
+
+# HTTP 客户端和服务
+requests = "^2.32.3"            # HTTP 请求库
+httpx = "^0.27.2"               # 异步HTTP客户端
+fastapi = "^0.114.2"            # Web API 框架（用于 langserve）
+uvicorn = "^0.30.6"             # ASGI 服务器
+
+# 数据处理和存储
+numpy = "^1.26.4"               # 数值计算
+pandas = "^2.2.2"               # 数据分析
+tiktoken = "^0.7.0"             # OpenAI tokenizer
+
+# 日志和监控
+loguru = "^0.7.2"               # 高级日志库
+rich = "^13.8.1"                # 富文本控制台输出
+
+[tool.poetry.group.dev.dependencies]
+# 开发环境依赖，仅在开发时需要
+
+# 测试框架
+pytest = "^8.3.3"              # 单元测试框架
+pytest-cov = "^5.0.0"          # 测试覆盖率
+pytest-asyncio = "^0.24.0"     # 异步测试支持
+pytest-mock = "^3.14.0"        # Mock 支持
+
+# 代码格式化工具
+black = "^24.8.0"               # 代码格式化
+isort = "^5.13.2"               # import 排序
+autopep8 = "^2.3.1"            # PEP8 自动修复
+
+# 代码质量检查
+flake8 = "^7.1.1"              # 代码风格检查
+mypy = "^1.11.2"               # 类型检查
+bandit = "^1.7.10"             # 安全检查
+pylint = "^3.2.7"              # 代码质量分析
+
+# 开发工具
+pre-commit = "^3.8.0"          # Git 提交前钩子
+jupyter = "^1.1.1"             # Jupyter Notebook
+ipython = "^8.27.0"            # 增强的 Python 交互式解释器
+notebook = "^7.2.2"            # Jupyter Notebook 服务器
+
+# 文档生成
+mkdocs = "^1.6.1"              # 文档生成器
+mkdocs-material = "^9.5.39"    # Material Design 主题
+mkdocstrings = "^0.26.1"       # API 文档自动生成
+
+[tool.poetry.group.test.dependencies]
+# 测试专用依赖
+pytest-xdist = "^3.6.0"        # 并行测试执行
+tox = "^4.18.1"                 # 多环境测试
+factory-boy = "^3.3.1"         # 测试数据工厂
+
+[tool.poetry.scripts]
+# 项目命令行工具定义
+langchain-learning = "langchain_learning.cli:main"
+
+[tool.black]
+# Black 代码格式化配置
+line-length = 88                # 行长度限制
+target-version = ['py39']       # 目标 Python 版本
+include = '\.pyi?$'             # 包含的文件类型
+extend-exclude = '''
+/(
+  # 排除的目录
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+# isort import 排序配置
+profile = "black"               # 与 black 兼容的配置
+multi_line_output = 3           # 多行输出模式
+line_length = 88                # 行长度
+include_trailing_comma = true   # 包含尾随逗号
+force_grid_wrap = 0             # 强制网格包装
+use_parentheses = true          # 使用括号
+ensure_newline_before_comments = true  # 注释前确保换行
+src_paths = ["src", "tests"]    # 源代码路径
+
+[tool.flake8]
+# Flake8 代码风格检查配置
+max-line-length = 88            # 最大行长度
+extend-ignore = [
+    "E203",  # 冒号前的空格（与 black 冲突）
+    "W503",  # 二元运算符前的换行（与 black 冲突）
+    "E501",  # 行长度超限（由 black 处理）
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    ".eggs",
+    "*.egg",
+    "build",
+    "dist",
+]
+per-file-ignores = [
+    "__init__.py:F401",         # __init__.py 中未使用的导入
+    "tests/*:S101",             # 测试文件中的 assert 语句
+]
+
+[tool.mypy]
+# MyPy 类型检查配置
+python_version = "3.9"          # Python 版本
+warn_return_any = true          # 警告返回 Any 类型
+warn_unused_configs = true      # 警告未使用的配置
+disallow_untyped_defs = true    # 禁止未类型化的函数定义
+disallow_incomplete_defs = true # 禁止不完整的函数定义
+check_untyped_defs = true       # 检查未类型化的函数定义
+disallow_untyped_decorators = true  # 禁止未类型化的装饰器
+no_implicit_optional = true     # 不隐式处理 Optional
+warn_redundant_casts = true     # 警告冗余的类型转换
+warn_unused_ignores = true      # 警告未使用的忽略注释
+warn_no_return = true           # 警告没有返回值的函数
+warn_unreachable = true         # 警告不可达代码
+strict_equality = true          # 严格的相等性检查
+
+# 模块配置
+[[tool.mypy.overrides]]
+module = [
+    "langchain.*",
+    "langgraph.*",
+    "langserve.*",
+]
+ignore_missing_imports = true   # 忽略缺失的导入
+
+[tool.pytest.ini_options]
+# Pytest 测试配置
+minversion = "7.0"              # 最小版本要求
+addopts = [
+    "-ra",                      # 显示所有测试结果摘要
+    "--strict-markers",         # 严格标记模式
+    "--strict-config",          # 严格配置模式
+    "--cov=src/langchain_learning",  # 覆盖率检查路径
+    "--cov-report=term-missing", # 覆盖率报告格式
+    "--cov-report=html",        # HTML 覆盖率报告
+    "--cov-fail-under=80",      # 覆盖率阈值
+]
+testpaths = ["tests"]           # 测试路径
+python_files = ["test_*.py"]    # 测试文件模式
+python_classes = ["Test*"]      # 测试类模式
+python_functions = ["test_*"]   # 测试函数模式
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+# 覆盖率运行配置
+source = ["src"]                # 源代码路径
+omit = [
+    "*/tests/*",                # 排除测试文件
+    "*/venv/*",                 # 排除虚拟环境
+    "*/__pycache__/*",          # 排除缓存文件
+]
+
+[tool.coverage.report]
+# 覆盖率报告配置
+exclude_lines = [
+    "pragma: no cover",         # 排除标记的代码行
+    "def __repr__",             # 排除 __repr__ 方法
+    "if self.debug:",           # 排除调试代码
+    "if settings.DEBUG",        # 排除调试设置
+    "raise AssertionError",     # 排除断言错误
+    "raise NotImplementedError", # 排除未实现错误
+    "if 0:",                    # 排除条件为假的代码
+    "if __name__ == .__main__.:", # 排除主程序入口
+]
+
+[tool.bandit]
+# Bandit 安全检查配置
+exclude_dirs = ["tests", "venv", ".venv"]  # 排除目录
+skips = ["B101", "B601"]        # 跳过的检查规则
+
+[tool.pylint.messages_control]
+# Pylint 消息控制配置
+disable = [
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring  
+    "C0116",  # missing-function-docstring
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments
+]
+
+[tool.pylint.format]
+# Pylint 格式配置
+max-line-length = 88            # 最大行长度
+
+[tool.pylint.basic]
+# Pylint 基础配置
+good-names = ["i", "j", "k", "ex", "Run", "_", "id", "ai", "llm"]  # 允许的短变量名

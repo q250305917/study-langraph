@@ -1,0 +1,488 @@
+# 数据处理模板专用配置文件
+# 定义文档加载、文本分割、向量化等数据处理模板的配置
+
+name: "DataProcessingTemplate"
+version: "1.0.0"
+description: "数据处理模板的配置，包括文档加载、文本分割、向量存储等功能"
+template_type: "data"
+author: "LangChain Learning Project"
+
+# 参数定义
+parameters:
+  # 文档加载器参数
+  file_path:
+    type: "str"
+    required: true
+    description: "要加载的文件路径或目录路径"
+    constraints:
+      min_length: 1
+    examples:
+      - "/path/to/document.pdf"
+      - "/path/to/directory/"
+      - "https://example.com/document.txt"
+      
+  file_type:
+    type: "str"
+    required: false
+    default: "auto"
+    description: "文件类型，auto表示自动检测"
+    constraints:
+      allowed_values:
+        - "auto"
+        - "txt"
+        - "pdf"
+        - "docx"
+        - "html"
+        - "markdown"
+        - "csv"
+        - "json"
+        - "xml"
+    examples:
+      - "auto"
+      - "pdf"
+      - "txt"
+      
+  encoding:
+    type: "str"
+    required: false
+    default: "utf-8"
+    description: "文件编码格式"
+    constraints:
+      allowed_values:
+        - "utf-8"
+        - "gbk"
+        - "ascii"
+        - "latin-1"
+    examples:
+      - "utf-8"
+      - "gbk"
+      
+  # 文本分割参数
+  chunk_size:
+    type: "int"
+    required: false
+    default: 1000
+    description: "文本块大小（字符数或token数）"
+    constraints:
+      min_value: 100
+      max_value: 8000
+    examples:
+      - 500   # 小块，适合精确检索
+      - 1000  # 中等大小，平衡性能和精度
+      - 2000  # 大块，保持更多上下文
+      
+  chunk_overlap:
+    type: "int"
+    required: false
+    default: 100
+    description: "文本块之间的重叠字符数"
+    constraints:
+      min_value: 0
+      max_value: 500
+    examples:
+      - 0     # 无重叠
+      - 100   # 适中重叠
+      - 200   # 较大重叠，保持连贯性
+      
+  splitter_type:
+    type: "str"
+    required: false
+    default: "recursive"
+    description: "文本分割器类型"
+    constraints:
+      allowed_values:
+        - "recursive"      # 递归字符分割器
+        - "character"      # 字符分割器
+        - "token"          # token分割器
+        - "semantic"       # 语义分割器
+        - "markdown"       # Markdown分割器
+        - "python"         # Python代码分割器
+    examples:
+      - "recursive"
+      - "token"
+      - "semantic"
+      
+  separators:
+    type: "list"
+    required: false
+    default: ["\n\n", "\n", " ", ""]
+    description: "分割符列表，按优先级排序"
+    examples:
+      - ["\n\n", "\n", ". ", " ", ""]  # 标准分割符
+      - ["\n\n", "\n"]                  # 仅段落分割
+      - ["。", "！", "？", "\n"]        # 中文句子分割
+      
+  # 向量化参数
+  embedding_model:
+    type: "str"
+    required: false
+    default: "text-embedding-ada-002"
+    description: "嵌入模型名称"
+    constraints:
+      allowed_values:
+        - "text-embedding-ada-002"
+        - "text-embedding-3-small"
+        - "text-embedding-3-large"
+        - "all-MiniLM-L6-v2"
+        - "all-mpnet-base-v2"
+    examples:
+      - "text-embedding-ada-002"
+      - "all-MiniLM-L6-v2"
+      
+  embedding_api_key:
+    type: "str"
+    required: false
+    default: null
+    description: "嵌入模型API密钥"
+    examples:
+      - "${OPENAI_API_KEY}"
+      - "${HUGGINGFACE_API_TOKEN}"
+      
+  # 向量存储参数
+  vectorstore_type:
+    type: "str"
+    required: false
+    default: "chroma"
+    description: "向量存储类型"
+    constraints:
+      allowed_values:
+        - "chroma"
+        - "faiss"
+        - "pinecone"
+        - "weaviate"
+        - "qdrant"
+        - "milvus"
+    examples:
+      - "chroma"
+      - "faiss"
+      - "pinecone"
+      
+  collection_name:
+    type: "str"
+    required: false
+    default: "documents"
+    description: "向量存储集合名称"
+    constraints:
+      pattern: "^[a-zA-Z0-9_-]+$"
+      min_length: 1
+      max_length: 50
+    examples:
+      - "documents"
+      - "knowledge_base"
+      - "user_docs"
+      
+  persist_directory:
+    type: "str"
+    required: false
+    default: "./data/vectorstore"
+    description: "向量存储持久化目录"
+    examples:
+      - "./data/vectorstore"
+      - "/opt/data/vectors"
+      
+  # 检索参数
+  similarity_threshold:
+    type: "float"
+    required: false
+    default: 0.7
+    description: "相似度阈值，用于过滤检索结果"
+    constraints:
+      min_value: 0.0
+      max_value: 1.0
+    examples:
+      - 0.5   # 宽松阈值，更多结果
+      - 0.7   # 适中阈值
+      - 0.9   # 严格阈值，高质量结果
+      
+  k:
+    type: "int"
+    required: false
+    default: 4
+    description: "检索返回的文档数量"
+    constraints:
+      min_value: 1
+      max_value: 20
+    examples:
+      - 3     # 少量精确结果
+      - 4     # 默认数量
+      - 10    # 更多候选结果
+      
+  # 元数据参数
+  metadata_keys:
+    type: "list"
+    required: false
+    default: ["source", "page", "chunk_id"]
+    description: "要提取和存储的元数据字段"
+    examples:
+      - ["source", "page"]
+      - ["source", "chapter", "section"]
+      - ["file_name", "created_date", "author"]
+      
+  include_metadata:
+    type: "bool"
+    required: false
+    default: true
+    description: "是否在结果中包含元数据"
+    examples:
+      - true
+      - false
+      
+  # 过滤参数
+  filter_empty_docs:
+    type: "bool"
+    required: false
+    default: true
+    description: "是否过滤空文档"
+    examples:
+      - true
+      - false
+      
+  min_doc_length:
+    type: "int"
+    required: false
+    default: 10
+    description: "文档最小长度（字符数）"
+    constraints:
+      min_value: 1
+      max_value: 1000
+    examples:
+      - 10
+      - 50
+      - 100
+      
+  # 处理选项
+  batch_size:
+    type: "int"
+    required: false
+    default: 100
+    description: "批处理大小"
+    constraints:
+      min_value: 1
+      max_value: 1000
+    examples:
+      - 10    # 小批次，内存限制
+      - 100   # 适中批次
+      - 500   # 大批次，高性能
+      
+  parallel_processing:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否启用并行处理"
+    examples:
+      - true
+      - false
+      
+  max_workers:
+    type: "int"
+    required: false
+    default: 4
+    description: "并行处理的最大工作线程数"
+    constraints:
+      min_value: 1
+      max_value: 32
+    examples:
+      - 2
+      - 4
+      - 8
+
+# 依赖项
+dependencies:
+  - "langchain>=0.1.0"
+  - "langchain-community>=0.0.20"
+  - "chromadb>=0.4.0"
+  - "faiss-cpu>=1.7.4"
+  - "sentence-transformers>=2.2.0"
+  - "tiktoken>=0.5.0"
+  - "pypdf>=3.0.0"
+  - "python-docx>=0.8.11"
+  - "beautifulsoup4>=4.11.0"
+
+template_dependencies: []
+
+# 使用示例
+examples:
+  - name: "基础PDF文档处理"
+    description: "加载PDF文档，分割文本并存储到向量数据库"
+    setup_parameters:
+      file_path: "./documents/sample.pdf"
+      file_type: "pdf"
+      chunk_size: 1000
+      chunk_overlap: 100
+      embedding_model: "text-embedding-ada-002"
+      embedding_api_key: "${OPENAI_API_KEY}"
+      vectorstore_type: "chroma"
+      collection_name: "pdf_docs"
+    execute_parameters:
+      operation: "load_and_store"
+    expected_output:
+      type: "dict"
+      description: "包含处理结果和统计信息的字典"
+      
+  - name: "批量文档处理"
+    description: "批量处理目录中的多个文档"
+    setup_parameters:
+      file_path: "./documents/"
+      file_type: "auto"
+      chunk_size: 800
+      chunk_overlap: 80
+      batch_size: 50
+      parallel_processing: true
+      max_workers: 4
+      embedding_model: "all-MiniLM-L6-v2"
+      vectorstore_type: "faiss"
+    execute_parameters:
+      operation: "batch_process"
+    expected_output:
+      type: "dict"
+      description: "批处理结果和性能统计"
+      
+  - name: "语义搜索检索"
+    description: "在已建立的向量数据库中进行语义搜索"
+    setup_parameters:
+      vectorstore_type: "chroma"
+      collection_name: "knowledge_base"
+      embedding_model: "text-embedding-ada-002"
+      k: 5
+      similarity_threshold: 0.75
+    execute_parameters:
+      operation: "search"
+      query: "人工智能的发展历史"
+    expected_output:
+      type: "list"
+      description: "相关文档片段列表"
+
+# 执行配置
+timeout: 300.0  # 数据处理可能需要较长时间
+retry_count: 1
+async_enabled: true
+
+# 性能配置
+cache_enabled: false  # 数据处理通常不需要缓存
+max_memory_usage: 1024  # 1GB内存限制
+
+# 标签
+tags:
+  - "data-processing"
+  - "document-loader"
+  - "text-splitter"
+  - "vectorstore"
+  - "embeddings"
+  - "retrieval"
+
+# 文档链接
+documentation_url: "https://python.langchain.com/docs/modules/data_connection/"
+source_url: "https://github.com/langchain-ai/langchain"
+
+# 支持的文件格式详细信息
+supported_formats:
+  txt:
+    description: "纯文本文件"
+    extensions: [".txt"]
+    max_size: "100MB"
+    encoding_support: ["utf-8", "gbk", "ascii"]
+    
+  pdf:
+    description: "PDF文档"
+    extensions: [".pdf"]
+    max_size: "50MB"
+    features: ["text_extraction", "metadata_extraction"]
+    
+  docx:
+    description: "Microsoft Word文档"
+    extensions: [".docx", ".doc"]
+    max_size: "50MB"
+    features: ["text_extraction", "formatting_preservation"]
+    
+  html:
+    description: "HTML网页"
+    extensions: [".html", ".htm"]
+    max_size: "10MB"
+    features: ["tag_filtering", "link_extraction"]
+    
+  markdown:
+    description: "Markdown文档"
+    extensions: [".md", ".markdown"]
+    max_size: "10MB"
+    features: ["structure_preservation", "code_block_handling"]
+    
+  csv:
+    description: "CSV数据文件"
+    extensions: [".csv"]
+    max_size: "100MB"
+    features: ["column_selection", "data_type_inference"]
+
+# 向量存储提供商详细配置
+vectorstore_providers:
+  chroma:
+    description: "本地向量数据库，适合开发和小规模应用"
+    features: ["local_storage", "fast_setup", "metadata_filtering"]
+    limitations: ["single_node", "limited_scale"]
+    
+  faiss:
+    description: "Facebook AI的相似性搜索库"
+    features: ["high_performance", "multiple_index_types", "gpu_support"]
+    limitations: ["no_metadata", "complex_setup"]
+    
+  pinecone:
+    description: "托管向量数据库服务"
+    features: ["managed_service", "scalable", "real_time_updates"]
+    limitations: ["cost", "api_dependency"]
+    
+  weaviate:
+    description: "开源向量搜索引擎"
+    features: ["graphql_api", "schema_support", "clustering"]
+    limitations: ["complex_setup", "resource_intensive"]
+
+# 性能优化建议
+performance_tips:
+  - "选择合适的chunk_size平衡检索精度和性能"
+  - "使用本地嵌入模型减少API调用延迟"
+  - "启用并行处理提高大批量文档处理速度"
+  - "定期优化向量数据库索引"
+  - "监控内存使用避免OOM错误"
+  - "使用批处理减少网络开销"
+
+# 常见问题和解决方案
+troubleshooting:
+  memory_error:
+    description: "处理大文件时内存不足"
+    solutions:
+      - "减少batch_size参数"
+      - "增加chunk_overlap减少单次处理量"
+      - "启用流式处理"
+      - "分批处理大文件"
+      
+  encoding_error:
+    description: "文件编码错误"
+    solutions:
+      - "指定正确的encoding参数"
+      - "使用chardet库自动检测编码"
+      - "转换文件编码为utf-8"
+      
+  embedding_timeout:
+    description: "嵌入API调用超时"
+    solutions:
+      - "增加timeout参数"
+      - "减少batch_size"
+      - "使用本地嵌入模型"
+      - "实现重试机制"
+      
+  vectorstore_connection_error:
+    description: "向量数据库连接失败"
+    solutions:
+      - "检查数据库服务状态"
+      - "验证连接参数"
+      - "确认网络连通性"
+      - "检查访问权限"
+
+# 最佳实践
+best_practices:
+  - "根据文档类型选择合适的加载器"
+  - "设置合理的chunk_size和overlap"
+  - "为不同用途创建不同的集合"
+  - "定期备份向量数据库"
+  - "实现增量更新机制"
+  - "监控向量存储的性能指标"
+  - "使用元数据提高检索精度"
+  - "建立文档版本控制机制"

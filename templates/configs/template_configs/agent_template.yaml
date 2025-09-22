@@ -1,0 +1,513 @@
+# 代理模板专用配置文件
+# 定义ReAct代理、工具调用代理、规划代理等模板的配置
+
+name: "AgentTemplate"
+version: "1.0.0"
+description: "代理模板的配置，支持ReAct、工具调用、规划等多种代理类型"
+template_type: "agent"
+author: "LangChain Learning Project"
+
+# 参数定义
+parameters:
+  # 代理类型参数
+  agent_type:
+    type: "str"
+    required: true
+    description: "代理的类型"
+    constraints:
+      allowed_values:
+        - "react"              # ReAct代理
+        - "tool_calling"       # 工具调用代理
+        - "planning"           # 规划代理
+        - "conversational"     # 对话代理
+        - "self_ask"          # 自问自答代理
+        - "structured_chat"    # 结构化聊天代理
+    examples:
+      - "react"
+      - "tool_calling"
+      - "planning"
+      
+  # LLM实例参数
+  llm:
+    type: "object"
+    required: true
+    description: "要使用的LLM实例"
+    examples:
+      - "ChatOpenAI实例"
+      - "Anthropic实例"
+      
+  # 工具配置
+  tools:
+    type: "list"
+    required: true
+    description: "代理可使用的工具列表"
+    constraints:
+      min_length: 1
+    examples:
+      - ["calculator", "search", "weather"]
+      - ["python_repl", "file_manager"]
+      
+  # 系统提示词
+  system_prompt:
+    type: "str"
+    required: false
+    default: ""
+    description: "代理的系统提示词，定义代理的角色和行为"
+    constraints:
+      max_length: 8000
+    examples:
+      - "你是一个有用的AI助手，可以使用工具来帮助用户解决问题"
+      - "你是一个数据分析专家，擅长使用Python工具分析数据"
+      
+  # 执行配置
+  max_iterations:
+    type: "int"
+    required: false
+    default: 10
+    description: "最大迭代次数"
+    constraints:
+      min_value: 1
+      max_value: 50
+    examples:
+      - 5     # 简单任务
+      - 10    # 一般任务
+      - 20    # 复杂任务
+      
+  max_execution_time:
+    type: "float"
+    required: false
+    default: 300.0
+    description: "最大执行时间（秒）"
+    constraints:
+      min_value: 10.0
+      max_value: 3600.0
+    examples:
+      - 60.0   # 1分钟
+      - 300.0  # 5分钟
+      - 900.0  # 15分钟
+      
+  early_stopping_method:
+    type: "str"
+    required: false
+    default: "force"
+    description: "早停方法"
+    constraints:
+      allowed_values:
+        - "force"      # 强制停止
+        - "generate"   # 生成最终答案
+    examples:
+      - "force"
+      - "generate"
+      
+  # 工具配置
+  tool_timeout:
+    type: "float"
+    required: false
+    default: 30.0
+    description: "单个工具调用的超时时间（秒）"
+    constraints:
+      min_value: 1.0
+      max_value: 300.0
+    examples:
+      - 10.0
+      - 30.0
+      - 60.0
+      
+  max_tool_calls:
+    type: "int"
+    required: false
+    default: 20
+    description: "最大工具调用次数"
+    constraints:
+      min_value: 1
+      max_value: 100
+    examples:
+      - 10
+      - 20
+      - 50
+      
+  parallel_tool_calls:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否允许并行工具调用"
+    examples:
+      - true
+      - false
+      
+  tool_choice:
+    type: "str"
+    required: false
+    default: "auto"
+    description: "工具选择策略"
+    constraints:
+      allowed_values:
+        - "auto"      # 自动选择
+        - "none"      # 不使用工具
+        - "required"  # 必须使用工具
+    examples:
+      - "auto"
+      - "required"
+      
+  # 记忆配置
+  memory:
+    type: "object"
+    required: false
+    default: null
+    description: "记忆组件实例"
+    examples:
+      - "ConversationBufferMemory实例"
+      - "ConversationSummaryMemory实例"
+      
+  memory_key:
+    type: "str"
+    required: false
+    default: "chat_history"
+    description: "记忆在提示词中的键名"
+    examples:
+      - "chat_history"
+      - "conversation"
+      - "memory"
+      
+  # 输出解析配置
+  output_parser:
+    type: "object"
+    required: false
+    default: null
+    description: "输出解析器实例"
+    examples:
+      - "PydanticOutputParser实例"
+      - "JSONOutputParser实例"
+      
+  return_intermediate_steps:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否返回中间步骤"
+    examples:
+      - true
+      - false
+      
+  # 调试配置
+  verbose:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否显示详细执行过程"
+    examples:
+      - true
+      - false
+      
+  debug_mode:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否启用调试模式"
+    examples:
+      - true
+      - false
+      
+  # 规划代理特定参数
+  planning_llm:
+    type: "object"
+    required: false
+    default: null
+    description: "用于规划的LLM实例"
+    examples:
+      - "ChatOpenAI实例"
+      
+  max_planning_steps:
+    type: "int"
+    required: false
+    default: 5
+    description: "最大规划步骤数"
+    constraints:
+      min_value: 1
+      max_value: 20
+    examples:
+      - 3
+      - 5
+      - 10
+      
+  planning_timeout:
+    type: "float"
+    required: false
+    default: 60.0
+    description: "规划阶段超时时间（秒）"
+    constraints:
+      min_value: 10.0
+      max_value: 300.0
+    examples:
+      - 30.0
+      - 60.0
+      - 120.0
+      
+  # 错误处理配置
+  handle_parsing_errors:
+    type: "bool"
+    required: false
+    default: true
+    description: "是否处理解析错误"
+    examples:
+      - true
+      - false
+      
+  max_retries:
+    type: "int"
+    required: false
+    default: 3
+    description: "最大重试次数"
+    constraints:
+      min_value: 0
+      max_value: 10
+    examples:
+      - 1
+      - 3
+      - 5
+      
+  # 性能配置
+  streaming:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否启用流式输出"
+    examples:
+      - true
+      - false
+      
+  # 安全配置
+  allowed_tools:
+    type: "list"
+    required: false
+    default: []
+    description: "允许使用的工具白名单"
+    examples:
+      - ["calculator", "weather"]
+      - []  # 空列表表示允许所有工具
+      
+  forbidden_tools:
+    type: "list"
+    required: false
+    default: []
+    description: "禁止使用的工具黑名单"
+    examples:
+      - ["dangerous_tool"]
+      - []
+      
+  sandbox_mode:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否在沙箱模式下执行"
+    examples:
+      - true
+      - false
+
+# 依赖项
+dependencies:
+  - "langchain>=0.1.0"
+  - "langchain-core>=0.1.0"
+  - "langchain-community>=0.0.20"
+
+template_dependencies: ["LLMTemplate"]
+
+# 使用示例
+examples:
+  - name: "数学问题求解ReAct代理"
+    description: "使用ReAct模式解决数学计算问题"
+    setup_parameters:
+      agent_type: "react"
+      tools: ["calculator", "python_repl"]
+      max_iterations: 10
+      verbose: true
+      system_prompt: "你是一个数学专家，使用工具来解决数学问题"
+    execute_parameters:
+      input: "计算(25 + 37) * 18 - 156的结果"
+    expected_output:
+      type: "str"
+      description: "包含计算过程和最终答案的字符串"
+      
+  - name: "信息搜索工具调用代理"
+    description: "使用工具调用模式搜索和整理信息"
+    setup_parameters:
+      agent_type: "tool_calling"
+      tools: ["search", "weather", "news"]
+      max_tool_calls: 15
+      parallel_tool_calls: true
+      tool_timeout: 20.0
+      return_intermediate_steps: true
+    execute_parameters:
+      input: "帮我查询今天北京的天气和最新的科技新闻"
+    expected_output:
+      type: "dict"
+      description: "包含天气信息、新闻和中间步骤的字典"
+      
+  - name: "复杂任务规划代理"
+    description: "使用规划模式分解和执行复杂任务"
+    setup_parameters:
+      agent_type: "planning"
+      tools: ["file_manager", "python_repl", "data_analyzer"]
+      max_planning_steps: 5
+      max_execution_time: 600.0
+      planning_timeout: 120.0
+      verbose: true
+    execute_parameters:
+      input: "分析sales_data.csv文件，生成月度销售报告"
+    expected_output:
+      type: "str"
+      description: "包含分析结果和报告的字符串"
+
+# 执行配置
+timeout: 300.0
+retry_count: 2
+async_enabled: true
+
+# 性能配置
+cache_enabled: false  # 代理通常不适合缓存
+max_memory_usage: 512
+
+# 标签
+tags:
+  - "agent"
+  - "react"
+  - "tool-calling"
+  - "planning"
+  - "autonomous"
+  - "reasoning"
+
+# 文档链接
+documentation_url: "https://python.langchain.com/docs/modules/agents/"
+source_url: "https://github.com/langchain-ai/langchain"
+
+# 代理类型详细说明
+agent_types:
+  react:
+    description: "Reasoning and Acting，结合推理和行动的代理模式"
+    workflow:
+      - "观察当前情况"
+      - "思考下一步行动"
+      - "选择并执行工具"
+      - "观察执行结果"
+      - "重复直到完成任务"
+    advantages:
+      - "思路清晰"
+      - "可解释性强"
+      - "适合复杂推理"
+    limitations:
+      - "执行步骤多"
+      - "token消耗大"
+      
+  tool_calling:
+    description: "直接调用工具的代理模式，效率更高"
+    workflow:
+      - "分析用户请求"
+      - "选择合适的工具"
+      - "并行或串行调用工具"
+      - "整合工具结果"
+      - "生成最终回答"
+    advantages:
+      - "执行效率高"
+      - "支持并行调用"
+      - "Token消耗少"
+    limitations:
+      - "复杂推理能力弱"
+      - "依赖工具质量"
+      
+  planning:
+    description: "先制定计划再执行的代理模式"
+    workflow:
+      - "分析任务需求"
+      - "制定执行计划"
+      - "按计划执行步骤"
+      - "监控执行进度"
+      - "调整计划（如需要）"
+    advantages:
+      - "适合复杂任务"
+      - "执行有序"
+      - "可监控进度"
+    limitations:
+      - "计划可能不准确"
+      - "执行时间长"
+
+# 常用工具配置
+common_tools:
+  calculator:
+    description: "数学计算工具"
+    use_cases: ["数学运算", "数值计算"]
+    safety_level: "safe"
+    
+  python_repl:
+    description: "Python代码执行环境"
+    use_cases: ["数据分析", "编程任务", "计算"]
+    safety_level: "medium"
+    restrictions: ["网络访问受限", "文件系统受限"]
+    
+  search:
+    description: "网络搜索工具"
+    use_cases: ["信息检索", "实时查询"]
+    safety_level: "safe"
+    
+  weather:
+    description: "天气查询工具"
+    use_cases: ["天气预报", "气象信息"]
+    safety_level: "safe"
+    
+  file_manager:
+    description: "文件管理工具"
+    use_cases: ["文件操作", "数据处理"]
+    safety_level: "medium"
+    restrictions: ["限制访问路径", "禁止删除系统文件"]
+
+# 性能优化建议
+performance_tips:
+  - "选择合适的代理类型匹配任务复杂度"
+  - "合理设置max_iterations避免无限循环"
+  - "使用工具并行调用提高效率"
+  - "优化系统提示词减少无效推理"
+  - "监控工具调用次数控制成本"
+  - "使用流式输出改善用户体验"
+
+# 常见问题和解决方案
+troubleshooting:
+  infinite_loop:
+    description: "代理进入无限循环"
+    solutions:
+      - "设置合理的max_iterations"
+      - "优化系统提示词"
+      - "检查工具返回格式"
+      - "添加循环检测逻辑"
+      
+  tool_calling_error:
+    description: "工具调用失败"
+    solutions:
+      - "检查工具参数格式"
+      - "验证工具权限"
+      - "增加错误处理"
+      - "设置工具超时"
+      
+  parsing_error:
+    description: "输出解析失败"
+    solutions:
+      - "启用handle_parsing_errors"
+      - "改善提示词格式"
+      - "使用结构化输出"
+      - "添加输出验证"
+      
+  memory_overflow:
+    description: "记忆内容过多导致性能问题"
+    solutions:
+      - "使用摘要记忆"
+      - "设置记忆大小限制"
+      - "定期清理记忆"
+      - "使用滑动窗口记忆"
+
+# 最佳实践
+best_practices:
+  - "为代理提供清晰的任务描述"
+  - "选择合适的工具集合"
+  - "设置合理的执行限制"
+  - "实现完善的错误处理"
+  - "监控代理的执行过程"
+  - "定期评估代理性能"
+  - "保护敏感工具的访问权限"
+  - "建立代理行为的审计机制"

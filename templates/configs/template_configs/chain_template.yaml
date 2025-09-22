@@ -1,0 +1,436 @@
+# 链组合模板专用配置文件
+# 定义顺序链、并行链、条件链等模板的配置
+
+name: "ChainTemplate"
+version: "1.0.0"
+description: "链组合模板的配置，支持顺序、并行、条件等多种链结构"
+template_type: "chain"
+author: "LangChain Learning Project"
+
+# 参数定义
+parameters:
+  # 链类型参数
+  chain_type:
+    type: "str"
+    required: true
+    description: "链的类型"
+    constraints:
+      allowed_values:
+        - "sequential"    # 顺序链
+        - "parallel"      # 并行链
+        - "conditional"   # 条件链
+        - "pipeline"      # 管道链
+        - "router"        # 路由链
+    examples:
+      - "sequential"
+      - "parallel"
+      - "conditional"
+      
+  # LLM实例参数
+  llm:
+    type: "object"
+    required: true
+    description: "要使用的LLM实例"
+    examples:
+      - "ChatOpenAI实例"
+      - "Anthropic实例"
+      
+  # 链步骤配置
+  steps:
+    type: "list"
+    required: true
+    description: "链的步骤配置列表"
+    constraints:
+      min_length: 1
+      max_length: 10
+    examples:
+      - [{"name": "step1", "prompt": "分析主题", "output_key": "analysis"}]
+      
+  # 输入变量
+  input_variables:
+    type: "list"
+    required: true
+    description: "链的输入变量列表"
+    constraints:
+      min_length: 1
+    examples:
+      - ["topic", "context"]
+      - ["question"]
+      
+  # 输出变量
+  output_variables:
+    type: "list"
+    required: false
+    default: []
+    description: "链的输出变量列表"
+    examples:
+      - ["result", "summary"]
+      - ["answer"]
+      
+  # 顺序链特定参数
+  verbose:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否显示详细执行过程"
+    examples:
+      - true
+      - false
+      
+  memory:
+    type: "object"
+    required: false
+    default: null
+    description: "记忆组件实例"
+    examples:
+      - "ConversationBufferMemory实例"
+      
+  # 并行链特定参数
+  max_workers:
+    type: "int"
+    required: false
+    default: 4
+    description: "并行执行的最大工作线程数"
+    constraints:
+      min_value: 1
+      max_value: 16
+    examples:
+      - 2
+      - 4
+      - 8
+      
+  timeout:
+    type: "float"
+    required: false
+    default: 60.0
+    description: "并行执行超时时间（秒）"
+    constraints:
+      min_value: 1.0
+      max_value: 600.0
+    examples:
+      - 30.0
+      - 60.0
+      - 120.0
+      
+  fail_fast:
+    type: "bool"
+    required: false
+    default: true
+    description: "是否在第一个失败时立即停止"
+    examples:
+      - true
+      - false
+      
+  # 条件链特定参数
+  conditions:
+    type: "dict"
+    required: false
+    default: {}
+    description: "条件映射字典"
+    examples:
+      - {"positive": "positive_chain", "negative": "negative_chain"}
+      
+  default_condition:
+    type: "str"
+    required: false
+    default: "default"
+    description: "默认条件名称"
+    examples:
+      - "default"
+      - "fallback"
+      
+  condition_evaluator:
+    type: "object"
+    required: false
+    default: null
+    description: "条件评估器实例"
+    
+  # 路由链特定参数
+  destination_chains:
+    type: "dict"
+    required: false
+    default: {}
+    description: "目标链映射"
+    examples:
+      - {"math": "math_chain", "science": "science_chain"}
+      
+  default_chain:
+    type: "object"
+    required: false
+    default: null
+    description: "默认链实例"
+    
+  # 错误处理参数
+  error_handling:
+    type: "str"
+    required: false
+    default: "raise"
+    description: "错误处理策略"
+    constraints:
+      allowed_values:
+        - "raise"      # 抛出异常
+        - "continue"   # 继续执行
+        - "skip"       # 跳过失败步骤
+        - "retry"      # 重试失败步骤
+    examples:
+      - "raise"
+      - "continue"
+      
+  max_retries:
+    type: "int"
+    required: false
+    default: 2
+    description: "最大重试次数"
+    constraints:
+      min_value: 0
+      max_value: 10
+    examples:
+      - 1
+      - 2
+      - 3
+      
+  retry_delay:
+    type: "float"
+    required: false
+    default: 1.0
+    description: "重试延迟时间（秒）"
+    constraints:
+      min_value: 0.1
+      max_value: 60.0
+    examples:
+      - 0.5
+      - 1.0
+      - 2.0
+      
+  # 性能配置
+  enable_caching:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否启用步骤结果缓存"
+    examples:
+      - true
+      - false
+      
+  cache_ttl:
+    type: "int"
+    required: false
+    default: 3600
+    description: "缓存生存时间（秒）"
+    constraints:
+      min_value: 60
+      max_value: 86400
+    examples:
+      - 1800  # 30分钟
+      - 3600  # 1小时
+      
+  # 监控配置
+  enable_metrics:
+    type: "bool"
+    required: false
+    default: true
+    description: "是否启用性能指标收集"
+    examples:
+      - true
+      - false
+      
+  log_intermediate_steps:
+    type: "bool"
+    required: false
+    default: false
+    description: "是否记录中间步骤"
+    examples:
+      - true
+      - false
+
+# 依赖项
+dependencies:
+  - "langchain>=0.1.0"
+  - "langchain-core>=0.1.0"
+
+template_dependencies: ["LLMTemplate"]
+
+# 使用示例
+examples:
+  - name: "文章写作顺序链"
+    description: "按顺序执行大纲生成、内容创作、修改润色三个步骤"
+    setup_parameters:
+      chain_type: "sequential"
+      steps:
+        - name: "outline"
+          prompt: "为主题'{topic}'生成详细大纲"
+          output_key: "outline"
+        - name: "writing"
+          prompt: "基于大纲:\n{outline}\n写一篇文章"
+          output_key: "article"
+        - name: "polish"
+          prompt: "修改润色以下文章:\n{article}"
+          output_key: "final_article"
+      input_variables: ["topic"]
+      output_variables: ["outline", "article", "final_article"]
+      verbose: true
+    execute_parameters:
+      topic: "人工智能的发展前景"
+    expected_output:
+      type: "dict"
+      description: "包含大纲、文章和最终文章的字典"
+      
+  - name: "多角度分析并行链"
+    description: "并行执行技术分析、市场分析、风险分析"
+    setup_parameters:
+      chain_type: "parallel"
+      steps:
+        - name: "tech_analysis"
+          prompt: "从技术角度分析: {topic}"
+          output_key: "tech_result"
+        - name: "market_analysis"
+          prompt: "从市场角度分析: {topic}"
+          output_key: "market_result"
+        - name: "risk_analysis"
+          prompt: "从风险角度分析: {topic}"
+          output_key: "risk_result"
+      input_variables: ["topic"]
+      max_workers: 3
+      timeout: 90.0
+      fail_fast: false
+    execute_parameters:
+      topic: "区块链技术在金融领域的应用"
+    expected_output:
+      type: "dict"
+      description: "包含三种分析结果的字典"
+      
+  - name: "情感分析条件链"
+    description: "根据情感分析结果选择不同的响应策略"
+    setup_parameters:
+      chain_type: "conditional"
+      conditions:
+        positive: "positive_response_chain"
+        negative: "negative_response_chain"
+        neutral: "neutral_response_chain"
+      default_condition: "neutral"
+      input_variables: ["user_input"]
+    execute_parameters:
+      user_input: "这个产品真是太棒了！"
+    expected_output:
+      type: "str"
+      description: "根据情感选择的响应内容"
+
+# 执行配置
+timeout: 120.0
+retry_count: 2
+async_enabled: true
+
+# 性能配置
+cache_enabled: true
+cache_ttl: 1800
+
+# 标签
+tags:
+  - "chain"
+  - "sequential"
+  - "parallel"
+  - "conditional"
+  - "workflow"
+  - "composition"
+
+# 文档链接
+documentation_url: "https://python.langchain.com/docs/modules/chains/"
+source_url: "https://github.com/langchain-ai/langchain"
+
+# 链类型详细说明
+chain_types:
+  sequential:
+    description: "按顺序执行多个步骤，前一步的输出作为后一步的输入"
+    use_cases:
+      - "文档处理流水线"
+      - "多步骤推理"
+      - "内容生成流程"
+    advantages:
+      - "逻辑清晰"
+      - "易于调试"
+      - "结果可预测"
+    limitations:
+      - "执行时间较长"
+      - "无法并行优化"
+      
+  parallel:
+    description: "同时执行多个独立的步骤，提高整体执行效率"
+    use_cases:
+      - "多角度分析"
+      - "批量处理"
+      - "A/B测试"
+    advantages:
+      - "执行速度快"
+      - "资源利用率高"
+      - "可扩展性强"
+    limitations:
+      - "步骤间无依赖"
+      - "资源消耗大"
+      
+  conditional:
+    description: "根据条件选择不同的执行路径"
+    use_cases:
+      - "个性化响应"
+      - "分类处理"
+      - "错误处理"
+    advantages:
+      - "灵活适应"
+      - "智能分流"
+      - "资源节约"
+    limitations:
+      - "条件复杂"
+      - "调试困难"
+
+# 性能优化建议
+performance_tips:
+  - "合理设置并行度避免资源竞争"
+  - "使用缓存减少重复计算"
+  - "设置合适的超时时间"
+  - "监控链的执行性能"
+  - "优化提示词减少token消耗"
+  - "使用异步执行提高响应速度"
+
+# 常见问题和解决方案
+troubleshooting:
+  step_timeout:
+    description: "某个步骤执行超时"
+    solutions:
+      - "增加timeout参数"
+      - "优化步骤逻辑"
+      - "检查网络连接"
+      - "分解复杂步骤"
+      
+  memory_leak:
+    description: "长时间运行导致内存泄漏"
+    solutions:
+      - "定期重置链状态"
+      - "限制记忆大小"
+      - "清理中间结果"
+      - "使用弱引用"
+      
+  step_dependency:
+    description: "步骤间依赖关系错误"
+    solutions:
+      - "检查输入输出变量"
+      - "验证步骤顺序"
+      - "使用调试模式"
+      - "添加验证逻辑"
+      
+  condition_evaluation:
+    description: "条件评估失败"
+    solutions:
+      - "检查条件逻辑"
+      - "添加默认条件"
+      - "验证输入格式"
+      - "使用异常处理"
+
+# 最佳实践
+best_practices:
+  - "为每个步骤设置清晰的输入输出"
+  - "使用有意义的变量名和步骤名"
+  - "实现适当的错误处理机制"
+  - "添加步骤执行的日志记录"
+  - "定期测试链的完整流程"
+  - "优化提示词的质量和效率"
+  - "监控链的性能指标"
+  - "建立链的版本管理机制"

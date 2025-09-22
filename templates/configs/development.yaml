@@ -1,0 +1,409 @@
+# LangChain Learning 开发环境配置文件
+# 适用于本地开发、调试和测试环境
+# 包含详细的调试信息和宽松的性能配置
+
+# ================================
+# 基础环境配置
+# ================================
+environment:
+  name: "development"
+  description: "本地开发环境配置"
+  version: "1.0.0"
+  created_date: "2025-09-21"
+
+# ================================
+# 全局系统配置
+# ================================
+global:
+  # 调试设置
+  debug_mode: true
+  verbose_logging: true
+  log_level: "DEBUG"
+  
+  # 性能配置（开发环境相对宽松）
+  default_timeout: 60.0        # 开发时允许更长的超时时间
+  default_retry_count: 3       # 增加重试次数便于调试
+  max_workers: 2               # 限制并发数避免资源竞争
+  
+  # 异步设置
+  async_enabled: true
+  async_timeout: 120.0
+  
+  # 内存管理
+  memory_limit_mb: 512         # 开发环境内存限制
+  gc_threshold: 100            # 垃圾回收阈值
+  
+  # 缓存配置（开发时禁用或使用短期缓存）
+  cache:
+    enabled: false             # 开发时禁用缓存确保数据新鲜
+    backend: "memory"
+    default_ttl: 300           # 5分钟短期缓存
+    max_size: 50               # 最大缓存项数
+    clear_on_restart: true
+  
+  # 监控和指标
+  metrics:
+    enabled: true
+    collection_interval: 10    # 10秒收集间隔便于实时监控
+    detailed_metrics: true
+    export_format: "json"
+    
+  # 安全设置（开发环境相对宽松）
+  security:
+    api_key_required: false    # 开发时可选
+    rate_limiting: false       # 禁用速率限制
+    validate_ssl: false        # 允许自签名证书
+
+# ================================
+# LLM 模型配置
+# ================================
+llm:
+  # 默认提供商（开发时推荐本地或免费模型）
+  default_provider: "openai"
+  
+  # OpenAI 配置
+  openai:
+    api_key: "${OPENAI_API_KEY}"      # 从环境变量读取
+    model: "gpt-3.5-turbo"            # 开发时使用成本较低的模型
+    temperature: 0.7
+    max_tokens: 1000
+    timeout: 30.0
+    base_url: null                    # 使用默认URL，可配置代理
+    organization: null
+    request_timeout: 30.0
+    max_retries: 3
+    
+  # Anthropic 配置
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-haiku-20240307"  # 开发时使用快速便宜的模型
+    max_tokens: 1000
+    temperature: 0.7
+    timeout: 30.0
+    
+  # 本地模型配置（开发推荐）
+  local:
+    enabled: true
+    model_path: "/Users/mask/.cache/llm/models"
+    model_name: "llama2-7b"
+    gpu_enabled: false         # 开发时可能没有GPU
+    cpu_threads: 4
+    context_length: 2048
+    
+  # 通用LLM参数
+  common:
+    temperature: 0.7
+    max_tokens: 1000
+    top_p: 0.9
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
+    stream: false             # 开发时可能不需要流式输出
+
+# ================================
+# 数据处理配置
+# ================================
+data:
+  # 文档加载器配置
+  document_loader:
+    chunk_size: 500           # 开发时使用较小块便于调试
+    chunk_overlap: 50
+    encoding: "utf-8"
+    max_file_size_mb: 10      # 限制文件大小避免内存问题
+    supported_formats: ["txt", "md", "pdf", "docx", "html"]
+    
+  # 文本分割器配置
+  text_splitter:
+    default_splitter: "recursive"
+    chunk_size: 500
+    chunk_overlap: 50
+    length_function: "len"
+    separators: ["\n\n", "\n", " ", ""]
+    keep_separator: true
+    
+  # 向量存储配置
+  vectorstore:
+    provider: "chroma"        # 开发时使用本地向量数据库
+    
+    # Chroma 配置（本地开发推荐）
+    chroma:
+      persist_directory: "./data/chroma_db"
+      collection_name: "dev_collection"
+      embedding_function: "openai"  # 或 "sentence-transformers"
+      metadata_keys: ["source", "chunk_id", "timestamp"]
+      
+    # FAISS 配置（备选）
+    faiss:
+      index_type: "flat"
+      dimension: 1536
+      save_path: "./data/faiss_index"
+      
+  # 嵌入模型配置
+  embeddings:
+    provider: "openai"
+    
+    openai:
+      api_key: "${OPENAI_API_KEY}"
+      model: "text-embedding-ada-002"
+      chunk_size: 1000
+      
+    # 本地嵌入模型（开发推荐，无需API费用）
+    sentence_transformers:
+      model_name: "all-MiniLM-L6-v2"
+      device: "cpu"
+      batch_size: 32
+      cache_dir: "./cache/embeddings"
+
+# ================================
+# 链和代理配置
+# ================================
+chains:
+  # 顺序链配置
+  sequential:
+    verbose: true             # 开发时启用详细输出
+    memory_enabled: true
+    max_steps: 5
+    step_timeout: 30.0
+    
+  # 并行链配置  
+  parallel:
+    max_workers: 2            # 开发时限制并发
+    timeout: 60.0
+    fail_fast: false         # 开发时不快速失败便于调试
+    
+  # 条件链配置
+  conditional:
+    default_condition: "default"
+    condition_timeout: 10.0
+    verbose_conditions: true
+
+# 代理配置
+agents:
+  # ReAct 代理
+  react:
+    max_iterations: 5         # 开发时限制迭代次数
+    max_execution_time: 60.0
+    verbose: true
+    early_stopping_method: "generate"
+    
+  # 工具调用代理
+  tool_calling:
+    max_tool_calls: 10
+    tool_timeout: 30.0
+    parallel_tool_calls: false  # 开发时串行执行便于调试
+    
+  # 规划代理
+  planning:
+    max_planning_steps: 3
+    planning_timeout: 30.0
+    execution_timeout: 60.0
+    verbose_planning: true
+
+# ================================
+# 记忆系统配置
+# ================================
+memory:
+  # 对话记忆
+  conversation:
+    type: "buffer"
+    max_token_limit: 2000     # 开发时限制记忆大小
+    return_messages: true
+    human_prefix: "Human"
+    ai_prefix: "Assistant"
+    
+  # 摘要记忆
+  summary:
+    max_token_limit: 1000
+    moving_summary_buffer: 500
+    
+  # 向量记忆
+  vector:
+    collection_name: "dev_memory"
+    k: 3                      # 检索前3个相关记忆
+    similarity_threshold: 0.7
+    
+  # 知识库
+  knowledge_base:
+    persist_path: "./data/knowledge_base"
+    auto_save: true
+    save_interval: 300        # 5分钟自动保存
+
+# ================================
+# 评估和测试配置
+# ================================
+evaluation:
+  # 准确性评估
+  accuracy:
+    test_cases_path: "./tests/data/test_cases.json"
+    batch_size: 5
+    timeout_per_case: 30.0
+    
+  # 性能评估
+  performance:
+    benchmark_enabled: true
+    profiling_enabled: true   # 开发时启用性能分析
+    memory_profiling: true
+    execution_time_tracking: true
+    
+  # 成本分析
+  cost_analysis:
+    track_api_calls: true
+    cost_per_token: 0.0001    # 估算成本
+    daily_budget: 10.0        # 开发时每日预算限制
+    
+  # A/B 测试
+  ab_testing:
+    enabled: false            # 开发时通常不需要A/B测试
+    test_ratio: 0.5
+    min_sample_size: 10
+
+# ================================
+# 开发工具配置
+# ================================
+development:
+  # 热重载
+  hot_reload:
+    enabled: true             # 开发时启用代码热重载
+    watch_paths: ["./templates", "./src"]
+    ignore_patterns: ["*.pyc", "__pycache__", ".git"]
+    
+  # 调试工具
+  debugging:
+    pdb_enabled: true         # 启用Python调试器
+    breakpoint_on_error: true # 错误时自动断点
+    trace_execution: true     # 跟踪执行过程
+    save_intermediate_results: true  # 保存中间结果便于调试
+    
+  # 测试配置
+  testing:
+    auto_test: true           # 代码变更时自动运行测试
+    test_coverage: true       # 启用测试覆盖率
+    mock_external_apis: true  # 模拟外部API调用
+    
+  # 本地服务
+  local_services:
+    # 本地API服务器
+    api_server:
+      enabled: true
+      host: "localhost"
+      port: 8000
+      auto_reload: true
+      
+    # 本地文档服务器
+    docs_server:
+      enabled: true
+      port: 8080
+      auto_build: true
+
+# ================================
+# 数据持久化配置
+# ================================
+persistence:
+  # 数据库配置（开发时使用SQLite）
+  database:
+    type: "sqlite"
+    path: "./data/dev_database.db"
+    auto_migrate: true
+    backup_enabled: false     # 开发时可能不需要备份
+    
+  # 文件存储
+  file_storage:
+    base_path: "./data/files"
+    max_file_size: "10MB"
+    allowed_extensions: [".txt", ".json", ".yaml", ".md"]
+    auto_cleanup: true
+    cleanup_days: 7          # 7天清理一次临时文件
+    
+  # 日志配置
+  logging:
+    level: "DEBUG"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file_path: "./logs/development.log"
+    max_size: "10MB"
+    backup_count: 3
+    console_output: true     # 开发时输出到控制台
+
+# ================================
+# 网络和连接配置
+# ================================
+network:
+  # HTTP 配置
+  http:
+    timeout: 30.0
+    max_retries: 3
+    backoff_factor: 0.3
+    verify_ssl: false        # 开发时可能使用自签名证书
+    proxy: null              # 可配置代理
+    
+  # API 速率限制（开发时宽松）
+  rate_limiting:
+    enabled: false
+    requests_per_minute: 100
+    burst_allowance: 10
+    
+  # 连接池
+  connection_pool:
+    max_connections: 10
+    max_connections_per_host: 5
+    keep_alive_timeout: 30
+
+# ================================
+# 模板特定配置
+# ================================
+templates:
+  # 模板通用默认配置
+  default:
+    version: "1.0.0"
+    timeout: 60.0            # 开发时允许更长超时
+    retry_count: 3
+    cache_enabled: false     # 开发时禁用缓存
+    
+  # LLM 模板配置
+  llm_templates:
+    default_model: "gpt-3.5-turbo"
+    temperature: 0.7
+    max_tokens: 1000
+    stream: false
+    
+  # 数据处理模板配置
+  data_templates:
+    default_chunk_size: 500
+    overlap_ratio: 0.1
+    embedding_model: "text-embedding-ada-002"
+    
+# ================================
+# 环境变量映射
+# ================================
+env_vars:
+  required:
+    - "OPENAI_API_KEY"       # 必需的环境变量
+  optional:
+    - "ANTHROPIC_API_KEY"    # 可选的环境变量
+    - "HUGGINGFACE_API_TOKEN"
+    - "LANGCHAIN_API_KEY"
+    - "LANGCHAIN_TRACING_V2"
+  
+  # 默认值（当环境变量不存在时使用）
+  defaults:
+    LANGCHAIN_TRACING_V2: "false"
+    LANGCHAIN_PROJECT: "langchain-learning-dev"
+
+# ================================
+# 扩展和插件配置
+# ================================
+extensions:
+  # LangSmith 集成（开发时可选）
+  langsmith:
+    enabled: false           # 开发时可能不需要跟踪
+    project_name: "langchain-learning-dev"
+    
+  # Weights & Biases 集成
+  wandb:
+    enabled: false
+    project: "langchain-learning"
+    entity: null
+    
+  # 自定义扩展
+  custom:
+    enabled: true
+    plugin_directory: "./plugins"
+    auto_load: true

@@ -1,0 +1,119 @@
+# LangChain学习项目文档生成配置
+# 项目基本信息
+project_name: "LangChain学习项目"
+project_version: "1.0.0"
+project_description: "LangChain学习和实践项目的完整文档，包含API参考、教程指南和最佳实践"
+project_url: "https://github.com/q250305917/study-langraph"
+author: "LangChain学习团队"
+
+# 源代码配置
+source:
+  directories:
+    - "src/langchain_learning/"
+    - "examples/"
+    - "notebooks/"
+  include_patterns:
+    - "*.py"
+    - "*.ipynb"
+  exclude_patterns:
+    - "__pycache__/*"
+    - "*.pyc"
+    - "test_*"
+    - ".pytest_cache/*"
+    - "venv/*"
+    - ".venv/*"
+  recursive: true
+  encoding: "utf-8"
+
+# 输出配置
+output:
+  directory: "docs/generated/"
+  formats:
+    - "markdown"
+    - "html"
+  clean_before_generate: true
+  create_index: true
+  organize_by_module: true
+
+# API文档配置
+api_docs:
+  include_private: false
+  include_source_links: true
+  include_inheritance: true
+  include_examples: true
+  sort_members: true
+  group_by_type: true
+  generate_class_diagrams: false
+
+# 教程配置
+tutorials:
+  auto_generate: true
+  include_output: true
+  execute_code: false
+  language: "zh"
+  difficulty_levels:
+    - "初级"
+    - "中级"
+    - "高级"
+  format_style: "step_by_step"
+
+# 主题配置
+theme:
+  name: "langchain"
+  custom_css: "docs/assets/css/custom.css"
+  custom_js: "docs/assets/js/custom.js"
+  syntax_highlighting: true
+  color_scheme: "light"
+  font_family: "system"
+
+# 发布配置
+publishing:
+  auto_deploy: false
+  github_pages: true
+  confluence_space: null
+  s3_bucket: null
+  custom_domain: null
+
+# 缓存配置
+cache:
+  enabled: true
+  directory: ".doc_cache/"
+  max_age_hours: 24
+  cache_templates: true
+  cache_assets: true
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "docs/logs/doc_generator.log"
+  max_file_size: "10MB"
+  backup_count: 5
+
+# 自定义配置
+custom:
+  # LangChain特定配置
+  langchain_version: "latest"
+  include_langsmith: true
+  include_langserve: true
+  
+  # 文档特性
+  experimental_features: false
+  debug_mode: false
+  generate_search_index: true
+  
+  # 多语言支持
+  languages:
+    - "zh"
+    - "en"
+  
+  # 文档分类
+  categories:
+    - "agents"
+    - "chains"
+    - "tools"
+    - "memory"
+    - "callbacks"
+    - "embeddings"
+    - "llms"
+    - "retrievers"

@@ -1,0 +1,574 @@
+# LangChain Learning 生产环境配置文件
+# 适用于正式部署的生产环境
+# 注重性能、安全性和稳定性
+
+# ================================
+# 基础环境配置
+# ================================
+environment:
+  name: "production"
+  description: "生产环境配置"
+  version: "1.0.0"
+  created_date: "2025-09-21"
+
+# ================================
+# 全局系统配置
+# ================================
+global:
+  # 调试设置（生产环境关闭调试）
+  debug_mode: false
+  verbose_logging: false
+  log_level: "INFO"          # 生产环境使用INFO级别日志
+  
+  # 性能配置（生产环境优化性能）
+  default_timeout: 30.0      # 较短的超时时间
+  default_retry_count: 2     # 适中的重试次数
+  max_workers: 8             # 根据服务器配置调整
+  
+  # 异步设置
+  async_enabled: true
+  async_timeout: 60.0
+  
+  # 内存管理（生产环境严格控制）
+  memory_limit_mb: 2048      # 增加内存限制
+  gc_threshold: 500          # 更高的垃圾回收阈值
+  
+  # 缓存配置（生产环境启用高效缓存）
+  cache:
+    enabled: true
+    backend: "redis"         # 生产环境使用Redis缓存
+    redis_url: "${REDIS_URL}"
+    default_ttl: 3600        # 1小时缓存
+    max_size: 1000           # 大缓存容量
+    clear_on_restart: false
+    compression: true        # 启用压缩节省内存
+    
+  # 监控和指标（生产环境重要）
+  metrics:
+    enabled: true
+    collection_interval: 60  # 1分钟收集间隔
+    detailed_metrics: false  # 减少详细指标降低开销
+    export_format: "prometheus"  # 使用Prometheus格式
+    metrics_endpoint: "/metrics"
+    
+  # 安全设置（生产环境严格）
+  security:
+    api_key_required: true   # 必须提供API密钥
+    rate_limiting: true      # 启用速率限制
+    validate_ssl: true       # 严格SSL验证
+    allowed_origins: ["https://yourdomain.com"]  # CORS配置
+    max_request_size: "10MB"
+
+# ================================
+# LLM 模型配置
+# ================================
+llm:
+  # 默认提供商（生产环境推荐稳定的服务）
+  default_provider: "openai"
+  
+  # OpenAI 配置
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4"            # 生产环境使用更强的模型
+    temperature: 0.5          # 生产环境降低随机性
+    max_tokens: 2000
+    timeout: 30.0
+    base_url: null
+    organization: "${OPENAI_ORG_ID}"
+    request_timeout: 30.0
+    max_retries: 2            # 生产环境减少重试次数
+    
+  # Anthropic 配置
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-sonnet-20240229"  # 生产环境使用平衡的模型
+    max_tokens: 2000
+    temperature: 0.5
+    timeout: 30.0
+    
+  # 本地模型配置（生产环境可选）
+  local:
+    enabled: false           # 生产环境可能不使用本地模型
+    model_path: "/opt/models"
+    model_name: "llama2-13b"
+    gpu_enabled: true        # 生产环境可能有GPU
+    cpu_threads: 8
+    context_length: 4096
+    
+  # 通用LLM参数
+  common:
+    temperature: 0.5         # 生产环境更保守的温度
+    max_tokens: 2000
+    top_p: 0.9
+    frequency_penalty: 0.1
+    presence_penalty: 0.1
+    stream: true             # 生产环境可能需要流式输出
+    
+  # 负载均衡和故障转移
+  load_balancing:
+    enabled: true
+    strategy: "round_robin"  # 轮询策略
+    health_check_interval: 60
+    failover_enabled: true
+    backup_providers: ["anthropic"]
+
+# ================================
+# 数据处理配置
+# ================================
+data:
+  # 文档加载器配置
+  document_loader:
+    chunk_size: 1000         # 生产环境使用较大块提高效率
+    chunk_overlap: 100
+    encoding: "utf-8"
+    max_file_size_mb: 50     # 增加文件大小限制
+    supported_formats: ["txt", "md", "pdf", "docx", "html", "json"]
+    parallel_processing: true # 启用并行处理
+    
+  # 文本分割器配置
+  text_splitter:
+    default_splitter: "recursive"
+    chunk_size: 1000
+    chunk_overlap: 100
+    length_function: "tiktoken"  # 生产环境使用更精确的token计算
+    separators: ["\n\n", "\n", ". ", " ", ""]
+    keep_separator: true
+    
+  # 向量存储配置
+  vectorstore:
+    provider: "pinecone"     # 生产环境使用托管向量数据库
+    
+    # Pinecone 配置（生产推荐）
+    pinecone:
+      api_key: "${PINECONE_API_KEY}"
+      environment: "${PINECONE_ENVIRONMENT}"
+      index_name: "prod-langchain-index"
+      dimension: 1536
+      metric: "cosine"
+      pod_type: "p1.x1"      # 根据需求选择
+      replicas: 2            # 高可用配置
+      
+    # Weaviate 配置（备选）
+    weaviate:
+      url: "${WEAVIATE_URL}"
+      api_key: "${WEAVIATE_API_KEY}"
+      class_name: "Document"
+      
+  # 嵌入模型配置
+  embeddings:
+    provider: "openai"
+    
+    openai:
+      api_key: "${OPENAI_API_KEY}"
+      model: "text-embedding-ada-002"
+      chunk_size: 1000
+      max_retries: 3
+      request_timeout: 30.0
+      
+    # 备用嵌入服务
+    backup:
+      provider: "huggingface"
+      api_key: "${HUGGINGFACE_API_TOKEN}"
+      model: "sentence-transformers/all-mpnet-base-v2"
+
+# ================================
+# 链和代理配置
+# ================================
+chains:
+  # 顺序链配置
+  sequential:
+    verbose: false           # 生产环境关闭详细输出
+    memory_enabled: true
+    max_steps: 10
+    step_timeout: 30.0
+    error_handling: "graceful"  # 优雅错误处理
+    
+  # 并行链配置
+  parallel:
+    max_workers: 8           # 生产环境增加并发
+    timeout: 60.0
+    fail_fast: true          # 生产环境快速失败
+    resource_management: true
+    
+  # 条件链配置
+  conditional:
+    default_condition: "default"
+    condition_timeout: 10.0
+    verbose_conditions: false
+    caching_enabled: true    # 条件结果缓存
+
+# 代理配置
+agents:
+  # ReAct 代理
+  react:
+    max_iterations: 10       # 生产环境允许更多迭代
+    max_execution_time: 120.0
+    verbose: false
+    early_stopping_method: "force"
+    resource_monitoring: true
+    
+  # 工具调用代理
+  tool_calling:
+    max_tool_calls: 20
+    tool_timeout: 30.0
+    parallel_tool_calls: true   # 生产环境启用并行工具调用
+    tool_result_caching: true
+    
+  # 规划代理
+  planning:
+    max_planning_steps: 5
+    planning_timeout: 60.0
+    execution_timeout: 300.0
+    verbose_planning: false
+    plan_caching: true
+
+# ================================
+# 记忆系统配置
+# ================================
+memory:
+  # 对话记忆
+  conversation:
+    type: "summary"          # 生产环境使用摘要记忆节省资源
+    max_token_limit: 4000
+    return_messages: true
+    human_prefix: "Human"
+    ai_prefix: "Assistant"
+    summarize_step: 10       # 每10轮对话进行摘要
+    
+  # 摘要记忆
+  summary:
+    max_token_limit: 2000
+    moving_summary_buffer: 1000
+    
+  # 向量记忆
+  vector:
+    collection_name: "prod_memory"
+    k: 5                     # 检索更多相关记忆
+    similarity_threshold: 0.8
+    
+  # 知识库
+  knowledge_base:
+    persist_path: "/data/knowledge_base"
+    auto_save: true
+    save_interval: 600       # 10分钟自动保存
+    backup_enabled: true
+    backup_interval: 3600    # 1小时备份一次
+
+# ================================
+# 评估和测试配置
+# ================================
+evaluation:
+  # 准确性评估
+  accuracy:
+    test_cases_path: "/data/test_cases.json"
+    batch_size: 10
+    timeout_per_case: 30.0
+    parallel_execution: true
+    
+  # 性能评估
+  performance:
+    benchmark_enabled: true
+    profiling_enabled: false  # 生产环境关闭性能分析
+    memory_profiling: false
+    execution_time_tracking: true
+    
+  # 成本分析
+  cost_analysis:
+    track_api_calls: true
+    cost_per_token: 0.0001
+    daily_budget: 100.0      # 生产环境预算
+    alert_threshold: 0.8     # 80%预算时告警
+    
+  # A/B 测试
+  ab_testing:
+    enabled: true
+    test_ratio: 0.1          # 10%流量用于测试
+    min_sample_size: 100
+    statistical_significance: 0.95
+
+# ================================
+# 高可用和容错配置
+# ================================
+high_availability:
+  # 健康检查
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    interval: 30             # 30秒检查一次
+    timeout: 10
+    
+  # 负载均衡
+  load_balancer:
+    algorithm: "least_connections"
+    health_check_enabled: true
+    session_affinity: false
+    
+  # 故障转移
+  failover:
+    enabled: true
+    detection_timeout: 30
+    recovery_timeout: 300
+    max_retries: 3
+    
+  # 断路器模式
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout: 60
+    half_open_max_calls: 3
+
+# ================================
+# 安全和认证配置
+# ================================
+security:
+  # API 认证
+  authentication:
+    type: "bearer_token"
+    token_expiry: 3600       # 1小时过期
+    refresh_enabled: true
+    
+  # 授权
+  authorization:
+    enabled: true
+    roles: ["user", "admin", "developer"]
+    permissions_file: "/etc/permissions.json"
+    
+  # 加密
+  encryption:
+    data_at_rest: true
+    data_in_transit: true
+    key_rotation_days: 90
+    
+  # 审计日志
+  audit:
+    enabled: true
+    log_file: "/logs/audit.log"
+    log_level: "INFO"
+    retention_days: 365
+
+# ================================
+# 监控和告警配置
+# ================================
+monitoring:
+  # 应用监控
+  application:
+    metrics_enabled: true
+    tracing_enabled: true
+    logging_enabled: true
+    
+  # 基础设施监控
+  infrastructure:
+    cpu_threshold: 80
+    memory_threshold: 85
+    disk_threshold: 90
+    network_threshold: 75
+    
+  # 告警配置
+  alerting:
+    enabled: true
+    channels: ["email", "slack", "pagerduty"]
+    severity_levels: ["critical", "warning", "info"]
+    
+    # 告警规则
+    rules:
+      - name: "high_error_rate"
+        condition: "error_rate > 5%"
+        severity: "critical"
+      - name: "high_latency"
+        condition: "p95_latency > 2s"
+        severity: "warning"
+      - name: "low_cache_hit_rate"
+        condition: "cache_hit_rate < 70%"
+        severity: "info"
+
+# ================================
+# 数据持久化配置
+# ================================
+persistence:
+  # 数据库配置（生产环境使用PostgreSQL）
+  database:
+    type: "postgresql"
+    host: "${DB_HOST}"
+    port: 5432
+    name: "${DB_NAME}"
+    user: "${DB_USER}"
+    password: "${DB_PASSWORD}"
+    pool_size: 20
+    max_overflow: 30
+    pool_timeout: 30
+    auto_migrate: false      # 生产环境手动迁移
+    backup_enabled: true
+    backup_schedule: "0 2 * * *"  # 每天凌晨2点备份
+    
+  # 文件存储（生产环境使用对象存储）
+  file_storage:
+    type: "s3"
+    bucket: "${S3_BUCKET}"
+    region: "${AWS_REGION}"
+    access_key: "${AWS_ACCESS_KEY_ID}"
+    secret_key: "${AWS_SECRET_ACCESS_KEY}"
+    max_file_size: "100MB"
+    encryption: true
+    versioning: true
+    
+  # 日志配置
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    handlers:
+      - type: "file"
+        path: "/logs/application.log"
+        max_size: "100MB"
+        backup_count: 10
+        rotation: "time"
+        when: "midnight"
+      - type: "syslog"
+        address: ("localhost", 514)
+        facility: "user"
+    console_output: false    # 生产环境不输出到控制台
+
+# ================================
+# 网络和连接配置
+# ================================
+network:
+  # HTTP 配置
+  http:
+    timeout: 30.0
+    max_retries: 2
+    backoff_factor: 0.5
+    verify_ssl: true
+    proxy: "${HTTP_PROXY}"   # 可配置企业代理
+    
+  # API 速率限制
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 1000  # 根据实际需求调整
+    burst_allowance: 100
+    storage: "redis"
+    
+  # 连接池
+  connection_pool:
+    max_connections: 100
+    max_connections_per_host: 20
+    keep_alive_timeout: 60
+    
+  # CDN 配置
+  cdn:
+    enabled: true
+    provider: "cloudflare"
+    cache_ttl: 3600
+    
+# ================================
+# 部署和扩展配置
+# ================================
+deployment:
+  # 容器配置
+  container:
+    image: "langchain-learning:latest"
+    port: 8000
+    health_check_path: "/health"
+    readiness_check_path: "/ready"
+    
+  # Kubernetes 配置
+  kubernetes:
+    namespace: "production"
+    replicas: 3
+    max_surge: 1
+    max_unavailable: 0
+    
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+        
+    autoscaling:
+      enabled: true
+      min_replicas: 3
+      max_replicas: 10
+      target_cpu_utilization: 70
+      target_memory_utilization: 80
+
+# ================================
+# 环境变量映射
+# ================================
+env_vars:
+  required:
+    - "OPENAI_API_KEY"
+    - "DB_HOST"
+    - "DB_NAME"
+    - "DB_USER"
+    - "DB_PASSWORD"
+    - "REDIS_URL"
+    - "S3_BUCKET"
+    - "AWS_REGION"
+    - "AWS_ACCESS_KEY_ID"
+    - "AWS_SECRET_ACCESS_KEY"
+    
+  optional:
+    - "ANTHROPIC_API_KEY"
+    - "PINECONE_API_KEY"
+    - "PINECONE_ENVIRONMENT"
+    - "LANGCHAIN_API_KEY"
+    - "LANGCHAIN_TRACING_V2"
+    - "HTTP_PROXY"
+    - "HTTPS_PROXY"
+    
+  defaults:
+    LANGCHAIN_TRACING_V2: "true"
+    LANGCHAIN_PROJECT: "langchain-learning-prod"
+
+# ================================
+# 扩展和集成配置
+# ================================
+integrations:
+  # LangSmith 集成（生产环境推荐）
+  langsmith:
+    enabled: true
+    project_name: "langchain-learning-prod"
+    api_key: "${LANGCHAIN_API_KEY}"
+    
+  # Weights & Biases 集成
+  wandb:
+    enabled: true
+    project: "langchain-learning-prod"
+    entity: "${WANDB_ENTITY}"
+    
+  # Datadog 集成
+  datadog:
+    enabled: true
+    api_key: "${DATADOG_API_KEY}"
+    site: "datadoghq.com"
+    
+  # Sentry 错误追踪
+  sentry:
+    enabled: true
+    dsn: "${SENTRY_DSN}"
+    environment: "production"
+    
+# ================================
+# 备份和灾难恢复
+# ================================
+backup:
+  # 数据备份
+  data:
+    enabled: true
+    schedule: "0 2 * * *"    # 每天凌晨2点
+    retention_days: 30
+    compression: true
+    encryption: true
+    
+  # 配置备份
+  config:
+    enabled: true
+    schedule: "0 3 * * 0"    # 每周日凌晨3点
+    retention_weeks: 12
+    
+  # 灾难恢复
+  disaster_recovery:
+    rto: 4                   # 4小时恢复时间目标
+    rpo: 1                   # 1小时恢复点目标
+    backup_regions: ["us-west-2", "eu-west-1"]
+    automated_failover: true
